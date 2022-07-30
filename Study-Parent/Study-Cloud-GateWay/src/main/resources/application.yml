@@ -1,0 +1,31 @@
+server:
+  port: 9030
+
+eureka:
+  client:
+    serviceUrl: # eureka server的路径
+      defaultZone: http://SpringCloudEurekaServerA:9020/eureka,http://SpringCloudEurekaServerB:9021/eureka
+  instance:
+    #使用ip注册，否则会使用主机名注册了（此处考虑到对老版本的兼容，新版本经过实验都是ip）
+    prefer-ip-address: true
+    #自定义实例显示格式，加上版本号，便于多版本管理，注意是ip-address，早期版本是ipAddress
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}:@project.version@
+
+spring:
+  application:
+    name: Study-Cloud-GateWay
+  cloud:
+    gateway:
+      routes: # 路由配置
+        - id: service-page-router
+          # 动态路由 从注册中心获取对应的服务的实例
+          uri: lb://Study-Service-Page
+          predicates: # 当断言成功后，交给某一个微服务处理时使用的是转发
+            - Path=/page/**
+        - id: service-product-router
+          uri: lb://Study-Service-Product
+          predicates: # 当断言成功后，交给某一个微服务处理时使用的是转发
+            - Path=/product/**
+          filters:
+            # http://127.0.0.1:9300/product/service/port --> /service/port -->商品微服务
+            - StripPrefix=1 # 去掉uri中的第一部分，所以就要求我们通过网关访问的时候，把uri的第一部分设置为product，从uri的第二部分开始才是真正的uri

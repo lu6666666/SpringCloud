@@ -1,0 +1,111 @@
+server:
+  port: 9010
+
+spring:
+  application:
+    name: Study-Service-Page # 服务名称
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/SpringCloud?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+
+
+    # config客户端配置,和ConfigServer通信，并告知ConfigServer希望获取的配置信息在哪个文件中
+    # 远程配置文件命名格式为{application}-{profile}.yml 或者 {application}-{profile}.properties
+    # 名称为 StudyConfigParent-Dev.yml
+    #      name: StudyConfigParent # StudyConfigParent-Dev.yml - 之前的内容
+    #      profile: Dev # StudyConfigParent-Dev.yml - 之后的内容不带后缀
+    #      label: master # 分支的名称
+    #      # spring cloud config 的IP地址
+    #      uri: http://localhost:9040
+  cloud:
+    config:
+      name: StudyConfigParent
+      label: master
+      profile: Dev
+      uri: http://localhost:9040
+  rabbitmq:
+    host: 192.168.43.129
+    # 下面三个可以不配置 使用默认的（前提是账号密码没有修改过）
+    port: 5672
+    username: admin
+    password: 123456
+    virtual-host: /study
+
+
+
+eureka:
+  client:
+    serviceUrl: # eureka server的路径
+      defaultZone: http://SpringCloudEurekaServerA:9020/eureka,http://SpringCloudEurekaServerB:9021/eureka
+  instance:
+    #使用ip注册，否则会使用主机名注册了（此处考虑到对老版本的兼容，新版本经过实验都是ip）
+    prefer-ip-address: true
+    #自定义实例显示格式，加上版本号，便于多版本管理，注意是ip-address，早期版本是ipAddress
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}:@project.version@
+
+# Feign对负载均衡的支持(针对的被调用方微服务名称,不加就是全局生效)
+Study-Service-Product:
+  ribbon:
+    #请求连接超时时间
+    ConnectTimeout: 2000
+    #请求处理超时时间
+    ReadTimeout: 15000
+    #对所有操作都进行重试
+    OkToRetryOnAllOperations: true
+    ####根据如上配置，当访问到故障请求的时候，它会再尝试访问一次当前实例（次数由 MaxAutoRetries配置），
+    ####如果不行，就换一个实例进行访问，如果还不行，再换一次实例访问（更换次数由 MaxAutoRetriesNextServer配置），
+    ####如果依然不行，返回失败信息。
+    MaxAutoRetries: 0 #对当前选中实例重试次数，不包括第一次调用
+    MaxAutoRetriesNextServer: 0 #切换实例的重试次数
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RoundRobinRule #负载策略调整
+
+# 配置熔断策略：
+hystrix:
+  command:
+    default:
+      circuitBreaker:
+        # 强制打开熔断器，如果该属性设置为true，强制断路器进入打开状态，将会拒绝所有的请求。默认false关闭的
+        forceOpen: false
+        # 触发熔断错误比例阈值，默认值50%
+        errorThresholdPercentage: 50
+        # 熔断后休眠时长，默认值5秒
+        sleepWindowInMilliseconds: 3000
+        # 熔断触发最小请求次数，默认值是20
+        requestVolumeThreshold: 2
+      execution:
+        isolation:
+          thread:
+          # 熔断超时设置，默认为1秒
+          timeoutInMilliseconds: 2000
+
+# springboot中暴露健康检查等断点端口
+
+# springboot中暴露健康检查等断点接口
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  # 暴露健康接口的细节
+  endpoint:
+    health:
+      show-details: always
+
+# Feign对熔断器的支持
+feign:
+  hystrix:
+    enabled: true # 默认是false
+  # 开启请求和响应压缩
+  compression:
+    request:
+      enabled: true # 默认不开启
+      mime-types: text/html,application/xml,application/json # 设置压缩的数据类型，此处也是默认值
+      min-request-size: 2048 # 设置出发压缩的大小下限，此处也是默认值
+    response:
+      enabled: true # 默认不开启
+
+
+
+

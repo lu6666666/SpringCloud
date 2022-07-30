@@ -1,0 +1,18 @@
+server:
+  port: 9020
+spring:
+  application:
+    name: Study-Cloud-Eureka
+eureka:
+  client: # eureka server 本身也是eureka的一个客户端，因为在集群下需要与其他eureka server进行数据的同步
+    service-url: # 定义eureka server url
+      # 如果是集群情况下 defaultZone设置为集群下的别的eureka server的地址 多个地址使用 , 隔开
+      defaultZone: http://SpringCloudEurekaServerB:9021/eureka
+    register-with-eureka: true # 表示是否向eureka中心注册自己的信息，因为自己就是eureka server 所以不需要注册，默认值为true
+    fetch-registry: true # 是否查询/拉取eureka server服务注册列表 默认为 true
+  instance:
+    # hostname: localhost # 当前eureka实例的主机名
+    # 使用ip注册 否则会使用主机名注册
+    prefer-ip-address: true
+    #自定义实例显示格式，加上版本号，便于多版本管理，注意是ip-address，早期版本是ipAddress
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}:@project.version@

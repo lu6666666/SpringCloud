@@ -1,0 +1,31 @@
+server:
+  port: 9000
+spring:
+  application:
+    name: Study-Service-Product # 服务名称
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/SpringCloud?characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+eureka:
+  client:
+    serviceUrl: # eureka server的路径
+      defaultZone: http://SpringCloudEurekaServerA:9020/eureka,http://SpringCloudEurekaServerB:9021/eureka
+    registry-fetch-interval-seconds: 30 # 从eureka server拉取服务注册表的间隔时间
+  instance:
+    #使用ip注册，否则会使用主机名注册了（此处考虑到对老版本的兼容，新版本经过实验都是ip）
+    prefer-ip-address: true
+    #自定义实例显示格式，加上版本号，便于多版本管理，注意是ip-address，早期版本是ipAddress
+    instance-id: ${spring.cloud.client.ip-address}:${spring.application.name}:${server.port}:1.0-SNAPSHOT
+    # 自定义元数据 会和标准元数据一起注册刀服务注册中心，可以被注册中心所有的client获取
+    metadata-map:
+      name: ZhangSan
+      age: 18
+      master: WuYu
+      username: root
+      password: 123456
+    # 续约间隔（默认30s）
+    lease-renewal-interval-in-seconds: 30
+    # 剔除时间（默认30s）
+    lease-expiration-duration-in-seconds: 90

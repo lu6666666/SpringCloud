@@ -1,0 +1,6 @@
+com\study\mapper\ProductMapper.class
+com\study\ProductApplication.class
+com\study\service\impl\ProductServiceImpl.class
+com\study\controller\ProductController.class
+com\study\controller\ServerConfigController.class
+com\study\service\ProductService.class
